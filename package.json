@@ -1,0 +1,30 @@
+{
+  "name": "@supmount/test-utilities",
+  "version": "1.0.0",
+  "description": "Testing utility classes",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "cross-env npx mocha -t 10000 --exit --bail test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/austundag/test-utilities-node.git"
+  },
+  "keywords": [
+    "testing",
+    "api"
+  ],
+  "author": "Afsin Ustundag",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/austundag/test-utilities-node/issues"
+  },
+  "homepage": "https://github.com/austundag/test-utilities-node#readme",
+  "devDependencies": {
+    "mocha": "^8.2.1"
+  },
+  "dependencies": {
+    "lodash": "^4.17.20"
+  }
+}
