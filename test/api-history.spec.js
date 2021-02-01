@@ -12,36 +12,60 @@ describe('api-history unit tests', function apiHistoryUnit() {
         id: 1,
         type: 'dog',
         name: 'Russell',
+        owner: {
+            gender: 'male'
+        },
     }, {
         id: 3,
         type: 'cat',
         name: 'Snowball',
+        owner: {
+            gender: 'female'
+        },
     }, {
         id: 4,
         type: 'dog',
         name: 'Terry',
+        owner: {
+            gender: 'male'
+        },
     }, {
         id: 7,
         type: 'cat',
         name: 'Jewel',
+        owner: {
+            gender: 'male'
+        },
     }, {
         id: 8,
         type: 'dog',
         name: 'Buzz',
+        owner: {
+            gender: 'female'
+        },
     }];
 
     const additionalRecords = [{
         id: 9,
         type: 'dog',
         name: 'Tatum',
+        owner: {
+            gender: 'female'
+        },
     }, {
         id: 11,
         type: 'cat',
         name: 'Jason',
+        owner: {
+            gender: 'male'
+        },
     }, {
         id: 13,
         type: 'dog',
         name: 'Red',
+        owner: {
+            gender: 'male'
+        },
     }];
 
     const checkRecords = function (apiHistory, expectedRecords, indices) {
@@ -73,7 +97,7 @@ describe('api-history unit tests', function apiHistoryUnit() {
         const expectedServers = indices.map(index => expectedRecords[index]);
         expect(apiHistory.listServers()).to.deep.equal(expectedServers);
 
-        const fieldLimitedServers = expectedServers.map(record => _.omit(record, 'type'));
+        const fieldLimitedServers = expectedServers.map(record => _.omit(record, 'type', 'owner'));
         expect(apiHistory.listServers(['id', 'name'])).to.deep.equal(fieldLimitedServers);
 
         const testIndices = indices.filter((na, index) => index !== 0);
@@ -162,6 +186,7 @@ describe('api-history unit tests', function apiHistoryUnit() {
                 delete testRecord.fieldstr2;
                 delete testRecord.id;
                 delete testRecord.type;
+                delete testRecord.owner;
                 return testRecord;
             });
 
@@ -179,6 +204,7 @@ describe('api-history unit tests', function apiHistoryUnit() {
                 const testRecord = _.cloneDeep(record);
                 delete testRecord.fieldstr1;
                 delete testRecord.type;
+                delete testRecord.owner;
                 return testRecord;
             });
 
