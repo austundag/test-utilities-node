@@ -111,7 +111,7 @@ describe('api-history unit tests', function apiHistoryUnit() {
 
     it('push', function push() {
         const apiHistory = new APIHistory();
-        records.forEach((record, index) => {
+        records.forEach((record) => {
             const client = _.omit(record, ['id']);
             const server = _.cloneDeep(record);
             apiHistory.push(client, server);
@@ -121,7 +121,7 @@ describe('api-history unit tests', function apiHistoryUnit() {
 
     it('pushWithId', function pushWithId() {
         const apiHistory = new APIHistory();
-        records.forEach((record, index) => {
+        records.forEach((record) => {
             const { id, ...client } = _.cloneDeep(record);
             apiHistory.pushWithId(client, id);
         });
@@ -154,7 +154,7 @@ describe('api-history unit tests', function apiHistoryUnit() {
         const expectedRecords = _.cloneDeep(records);
         const indices = [0, 1, 2, 3, 4];
         additionalRecords.slice(0, 2).forEach((record, index) => {
-            const { id, ...client } = _.cloneDeep(record);
+            const client = _.omit(record, 'id');
             const [removeIndex, currentRemoveIndex] = indexMovement[index];
             apiHistory.replace(removeIndex, client, _.cloneDeep(record));
             indices.splice(currentRemoveIndex, 1);
@@ -589,7 +589,6 @@ describe('api-history unit tests', function apiHistoryUnit() {
             apiHistory.pushWithId(client, id);
         });
 
-        const indices = [0, 1, 2, 3, 4];
         [ 1, 2, 3, 0].forEach((index) => {
             expect(store.lastIndex).not.equal(index);
             apiHistory.remove(index);

@@ -5,7 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "cross-env npx mocha -t 10000 --exit --bail test/*.js"
+    "test": "npx mocha -t 10000 --exit --bail test/*.js",
+    "select-test": "npx mocha -t 10000 --exit --bail",
+    "beautify": "npx eslint . --ext js --fix"
   },
   "repository": {
     "type": "git",
@@ -23,6 +25,7 @@
   "homepage": "https://github.com/austundag/test-utilities-node#readme",
   "devDependencies": {
     "chai": "^4.2.0",
+    "eslint": "^7.19.0",
     "mocha": "^8.2.1"
   },
   "dependencies": {
