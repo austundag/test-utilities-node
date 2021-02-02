@@ -3,45 +3,45 @@
 import _ from 'lodash';
 import chai from 'chai';
 
-import APIHistory from '../lib/api-history.js'; 
+import APIHistory from '../lib/api-history.js';
 
 const { expect } = chai;
 
-describe('api-history unit tests', function apiHistoryUnit() {
+describe('api-history unit tests', () => {
     const records = [{
         id: 1,
         type: 'dog',
         name: 'Russell',
         owner: {
-            gender: 'male'
+            gender: 'male',
         },
     }, {
         id: 3,
         type: 'cat',
         name: 'Snowball',
         owner: {
-            gender: 'female'
+            gender: 'female',
         },
     }, {
         id: 4,
         type: 'dog',
         name: 'Terry',
         owner: {
-            gender: 'male'
+            gender: 'male',
         },
     }, {
         id: 7,
         type: 'cat',
         name: 'Jewel',
         owner: {
-            gender: 'male'
+            gender: 'male',
         },
     }, {
         id: 8,
         type: 'dog',
         name: 'Buzz',
         owner: {
-            gender: 'female'
+            gender: 'female',
         },
     }];
 
@@ -50,28 +50,28 @@ describe('api-history unit tests', function apiHistoryUnit() {
         type: 'dog',
         name: 'Tatum',
         owner: {
-            gender: 'female'
+            gender: 'female',
         },
     }, {
         id: 11,
         type: 'cat',
         name: 'Jason',
         owner: {
-            gender: 'male'
+            gender: 'male',
         },
     }, {
         id: 13,
         type: 'dog',
         name: 'Red',
         owner: {
-            gender: 'male'
+            gender: 'male',
         },
     }];
 
     const checkRecords = function (apiHistory, expectedRecords, indices) {
-        const length = expectedRecords.length;
+        const { length } = expectedRecords;
         const last = expectedRecords[length - 1];
- 
+
         expect(apiHistory.length()).to.equal(length);
         expect(apiHistory.lastId()).to.equal(last.id);
         expect(apiHistory.lastServer()).to.deep.equal(last);
@@ -91,13 +91,13 @@ describe('api-history unit tests', function apiHistoryUnit() {
             expect(serverById).to.deep.equal(expectedRecord);
         });
 
-        const expectedClients = indices.map(index => _.omit(expectedRecords[index], 'id'));
+        const expectedClients = indices.map((index) => _.omit(expectedRecords[index], 'id'));
         expect(apiHistory.listClients()).to.deep.equal(expectedClients);
 
-        const expectedServers = indices.map(index => expectedRecords[index]);
+        const expectedServers = indices.map((index) => expectedRecords[index]);
         expect(apiHistory.listServers()).to.deep.equal(expectedServers);
 
-        const fieldLimitedServers = expectedServers.map(record => _.omit(record, 'type', 'owner'));
+        const fieldLimitedServers = expectedServers.map((record) => _.omit(record, 'type', 'owner'));
         expect(apiHistory.listServers(['id', 'name'])).to.deep.equal(fieldLimitedServers);
 
         const testIndices = indices.filter((na, index) => index !== 0);
@@ -109,7 +109,7 @@ describe('api-history unit tests', function apiHistoryUnit() {
         expect(apiHistory.listServers(['id', 'name'], testIndices)).to.deep.equal(fieldLimitedServers);
     };
 
-    it('push', function push() {
+    it('push', () => {
         const apiHistory = new APIHistory();
         records.forEach((record) => {
             const client = _.omit(record, ['id']);
@@ -119,7 +119,7 @@ describe('api-history unit tests', function apiHistoryUnit() {
         checkRecords(apiHistory, records, [0, 1, 2, 3, 4]);
     });
 
-    it('pushWithId', function pushWithId() {
+    it('pushWithId', () => {
         const apiHistory = new APIHistory();
         records.forEach((record) => {
             const { id, ...client } = _.cloneDeep(record);
@@ -128,7 +128,7 @@ describe('api-history unit tests', function apiHistoryUnit() {
         checkRecords(apiHistory, records, [0, 1, 2, 3, 4]);
     });
 
-    it('remove', function remove() {
+    it('remove', () => {
         const apiHistory = new APIHistory();
         records.forEach((record) => {
             const { id, ...client } = _.cloneDeep(record);
@@ -143,7 +143,7 @@ describe('api-history unit tests', function apiHistoryUnit() {
         });
     });
 
-    it('replace', function remove() {
+    it('replace', () => {
         const apiHistory = new APIHistory();
         records.forEach((record) => {
             const { id, ...client } = _.cloneDeep(record);
@@ -164,15 +164,16 @@ describe('api-history unit tests', function apiHistoryUnit() {
         });
     });
 
-    it('listServers', function listServers() {
+    it('listServers', () => {
         const testRecords = records.map((record, index) => {
-            const testRecord = Object.assign({
+            const testRecord = {
                 fieldstr1: `fieldStr1_${index}`,
                 fieldstr2: `fieldStr2_${index}`,
                 fieldint: index,
-            }, record);
+                ...record,
+            };
             return testRecord;
-       });
+        });
 
         const apiHistory = new APIHistory(['name', 'fieldstr1', 'fieldint']);
         testRecords.forEach((record) => {
@@ -218,7 +219,7 @@ describe('api-history unit tests', function apiHistoryUnit() {
         }
     });
 
-    it('updateClient and updateServer', function updateClient() {
+    it('updateClient and updateServer', () => {
         const apiHistory = new APIHistory();
         records.forEach((record) => {
             const { id, ...client } = _.cloneDeep(record);
@@ -235,8 +236,8 @@ describe('api-history unit tests', function apiHistoryUnit() {
         expectedRecords.push(additionalRecords[1]);
         expectedRecords.push(records[4]);
 
-        const expectedClients = expectedRecords.map(r =>  _.omit(r, 'id'));
-        expect(apiHistory.listClients()).to.deep.equal(expectedClients)
+        const expectedClients = expectedRecords.map((r) => _.omit(r, 'id'));
+        expect(apiHistory.listClients()).to.deep.equal(expectedClients);
 
         apiHistory.updateServer(1, additionalRecords[0]);
         apiHistory.updateServer(3, additionalRecords[1]);
@@ -245,7 +246,7 @@ describe('api-history unit tests', function apiHistoryUnit() {
 
         apiHistory.updateClient(4, _.omit(additionalRecords[2], 'id'));
         expectedClients[4] = _.omit(additionalRecords[2], 'id');
-        expect(apiHistory.listClients()).to.deep.equal(expectedClients)
+        expect(apiHistory.listClients()).to.deep.equal(expectedClients);
 
         apiHistory.updateLastServer(additionalRecords[2]);
         expectedRecords[4] = additionalRecords[2];
@@ -257,7 +258,7 @@ describe('api-history unit tests', function apiHistoryUnit() {
         checkRecords(apiHistory, expectedRecords, [1, 2, 3]);
     });
 
-    it('reloadServer', function reloadServer() {
+    it('reloadServer', () => {
         const apiHistory = new APIHistory();
         const expectedRecords = [...records.slice(0, 4), ...additionalRecords.slice(0, 2)];
         expectedRecords.forEach((record) => {
@@ -268,15 +269,15 @@ describe('api-history unit tests', function apiHistoryUnit() {
         apiHistory.updateClient(2, _.omit(records[4], 'id'));
         apiHistory.updateClient(4, _.omit(additionalRecords[2], 'id'));
 
-        const id_0 = records[2].id;
-        const id_1 = additionalRecords[0].id;
-        const update_0 = Object.assign({}, records[4], { id: id_0 });
-        const update_1 = Object.assign({}, additionalRecords[2], { id: id_1 });
-        apiHistory.reloadServer(update_0);
-        apiHistory.reloadServer(update_1);
+        const id0 = records[2].id;
+        const id1 = additionalRecords[0].id;
+        const update0 = { ...records[4], id: id0 };
+        const update1 = { ...additionalRecords[2], id: id1 };
+        apiHistory.reloadServer(update0);
+        apiHistory.reloadServer(update1);
 
-        expectedRecords[2] = Object.assign({}, records[4], { id: id_0 });
-        expectedRecords[4] = Object.assign({}, additionalRecords[2], { id: id_1 });
+        expectedRecords[2] = { ...records[4], id: id0 };
+        expectedRecords[4] = { ...additionalRecords[2], id: id1 };
 
         checkRecords(apiHistory, expectedRecords, [0, 1, 2, 3, 4, 5]);
 
@@ -290,7 +291,7 @@ describe('api-history unit tests', function apiHistoryUnit() {
             dog: 'perro',
             cat: 'cato',
             female: 'mujer',
-            male:'masculino',
+            male: 'masculino',
         },
         tr: {
             dog: 'köpek',
@@ -298,7 +299,7 @@ describe('api-history unit tests', function apiHistoryUnit() {
             female: 'dişi',
             male: 'erkek',
         },
-    }
+    };
 
     const translationSp = [{
         type: translations.sp.dog,
@@ -341,35 +342,35 @@ describe('api-history unit tests', function apiHistoryUnit() {
         type: translations.sp.dog,
         name: 'Russell',
         owner: {
-            gender: translations.sp.male
+            gender: translations.sp.male,
         },
     }, {
         id: 3,
         type: translations.sp.cat,
         name: 'Snowball',
         owner: {
-            gender: translations.sp.female
+            gender: translations.sp.female,
         },
     }, {
         id: 4,
         type: 'dog',
         name: 'Terry',
         owner: {
-            gender: 'male'
+            gender: 'male',
         },
     }, {
         id: 7,
         type: 'cat',
         name: 'Jewel',
         owner: {
-            gender: translations.sp.male
+            gender: translations.sp.male,
         },
     }, {
         id: 8,
         type: translations.sp.dog,
         name: 'Buzz',
         owner: {
-            gender: 'female'
+            gender: 'female',
         },
     }];
 
@@ -385,32 +386,32 @@ describe('api-history unit tests', function apiHistoryUnit() {
         type: translations.tr.cat,
         name: 'Snowball',
         owner: {
-            gender: translations.tr.female
+            gender: translations.tr.female,
         },
     }, {
         id: 4,
-        type:  translations.tr.dog,
+        type: translations.tr.dog,
         name: 'Terry',
         owner: {
-            gender: 'male'
+            gender: 'male',
         },
     }, {
         id: 7,
         type: translations.tr.cat,
         name: 'Jewel',
         owner: {
-            gender: translations.tr.male
+            gender: translations.tr.male,
         },
     }, {
         id: 8,
         type: 'dog',
         name: 'Buzz',
         owner: {
-            gender: translations.tr.female
+            gender: translations.tr.female,
         },
     }];
 
-    it('translate', function translate() {
+    it('translate', () => {
         const apiHistory = new APIHistory();
         records.forEach((record) => {
             const { id, ...client } = _.cloneDeep(record);
@@ -439,7 +440,7 @@ describe('api-history unit tests', function apiHistoryUnit() {
             const serverFr = apiHistory.translatedServer(index, 'fr');
             expect(serverFr).to.deep.equal(records[index]);
         });
- 
+
         records.forEach((record, index) => {
             const serverSp = apiHistory.serverTranslation(record.id, 'sp');
             expect(serverSp).to.deep.equal(expectedRecordsSp[index]);
@@ -472,31 +473,34 @@ describe('api-history unit tests', function apiHistoryUnit() {
         expect(apiHistory.listTranslatedServers('fr', includeFields)).to.deep.equal(testRecords);
     });
 
-    it('translateServer', function translateServer() {
+    it('translateServer', () => {
         const testRecords = records.map((record, index) => {
-            const testRecord = Object.assign({
+            const testRecord = {
                 fieldstr1: `fieldStr1_${index}`,
                 fieldstr2: `fieldStr2_${index}`,
                 fieldint: index,
-            }, record);
+                ...record,
+            };
             return testRecord;
         });
 
         const testRecordsTr = expectedRecordsTr.map((record, index) => {
-            const testRecord = Object.assign({
+            const testRecord = {
                 fieldstr1: `fieldStr1_${index}`,
                 fieldstr2: `fieldStr2_${index}`,
                 fieldint: index,
-            }, record);
+                ...record,
+            };
             return testRecord;
         });
 
         const testRecordsSp = expectedRecordsSp.map((record, index) => {
-            const testRecord = Object.assign({
+            const testRecord = {
                 fieldstr1: `fieldStr1_${index}`,
                 fieldstr2: `fieldStr2_${index}`,
                 fieldint: index,
-            }, record);
+                ...record,
+            };
             return testRecord;
         });
 
@@ -545,17 +549,17 @@ describe('api-history unit tests', function apiHistoryUnit() {
                 const testRecord = _.cloneDeep(record);
                 return _.omit(testRecord, ['fieldstr1', 'name', 'fieldstr2', 'id']);
             });
-            const expectedRecordsSp = testRecordsSp.map((record) => {
+            const expectedRecords2Sp = testRecordsSp.map((record) => {
                 const testRecord = _.cloneDeep(record);
                 return _.omit(testRecord, ['fieldstr1', 'name', 'fieldstr2', 'id']);
             });
-            const expectedRecordsTr = testRecordsTr.map((record) => {
+            const expectedRecords2Tr = testRecordsTr.map((record) => {
                 const testRecord = _.cloneDeep(record);
                 return _.omit(testRecord, ['fieldstr1', 'name', 'fieldstr2', 'id']);
             });
 
-            expect(apiHistory.listTranslatedServers('sp')).to.deep.equal(expectedRecordsSp);
-            expect(apiHistory.listTranslatedServers('tr')).to.deep.equal(expectedRecordsTr);
+            expect(apiHistory.listTranslatedServers('sp')).to.deep.equal(expectedRecords2Sp);
+            expect(apiHistory.listTranslatedServers('tr')).to.deep.equal(expectedRecords2Tr);
             expect(apiHistory.listTranslatedServers('fr')).to.deep.equal(expectedRecords);
         }
 
@@ -564,32 +568,34 @@ describe('api-history unit tests', function apiHistoryUnit() {
                 const testRecord = _.cloneDeep(record);
                 return _.omit(testRecord, ['fieldstr1', 'name', 'fieldstr2', 'fieldint']);
             });
-            const expectedRecordsSp = testRecordsSp.map((record) => {
+            const expectedRecords2Sp = testRecordsSp.map((record) => {
                 const testRecord = _.cloneDeep(record);
                 return _.omit(testRecord, ['fieldstr1', 'name', 'fieldstr2', 'fieldint']);
             });
-            const expectedRecordsTr = testRecordsTr.map((record) => {
+            const expectedRecords2Tr = testRecordsTr.map((record) => {
                 const testRecord = _.cloneDeep(record);
                 return _.omit(testRecord, ['fieldstr1', 'name', 'fieldstr2', 'fieldint']);
             });
 
             const includeFields = ['id', 'type', 'owner'];
-            expect(apiHistory.listTranslatedServers('sp', includeFields)).to.deep.equal(expectedRecordsSp);
-            expect(apiHistory.listTranslatedServers('tr', includeFields)).to.deep.equal(expectedRecordsTr);
+            expect(apiHistory.listTranslatedServers('sp', includeFields)).to.deep.equal(expectedRecords2Sp);
+            expect(apiHistory.listTranslatedServers('tr', includeFields)).to.deep.equal(expectedRecords2Tr);
             expect(apiHistory.listTranslatedServers('fr', includeFields)).to.deep.equal(expectedRecords);
         }
     });
 
-    it('pushRemoveHook', function pushRemoveHooks() {
+    it('pushRemoveHook', () => {
         const apiHistory = new APIHistory();
         const store = { lastIndex: -1 };
-        apiHistory.pushRemoveHook(index => store.lastIndex = index);
+        apiHistory.pushRemoveHook((index) => {
+            store.lastIndex = index;
+        });
         records.forEach((record) => {
             const { id, ...client } = _.cloneDeep(record);
             apiHistory.pushWithId(client, id);
         });
 
-        [ 1, 2, 3, 0].forEach((index) => {
+        [1, 2, 3, 0].forEach((index) => {
             expect(store.lastIndex).not.equal(index);
             apiHistory.remove(index);
             expect(store.lastIndex).equal(index);
