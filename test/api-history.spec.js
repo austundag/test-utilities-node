@@ -172,7 +172,7 @@ describe('api-history unit tests', function apiHistoryUnit() {
                 fieldint: index,
             }, record);
             return testRecord;
-       })
+       });
 
         const apiHistory = new APIHistory(['name', 'fieldstr1', 'fieldint']);
         testRecords.forEach((record) => {
@@ -283,5 +283,317 @@ describe('api-history unit tests', function apiHistoryUnit() {
         apiHistory.remove(1);
         apiHistory.remove(4);
         checkRecords(apiHistory, expectedRecords, [0, 2, 3, 5]);
+    });
+
+    const translations = {
+        sp: {
+            dog: 'perro',
+            cat: 'cato',
+            female: 'mujer',
+            male:'masculino',
+        },
+        tr: {
+            dog: 'köpek',
+            cat: 'kedi',
+            female: 'dişi',
+            male: 'erkek',
+        },
+    }
+
+    const translationSp = [{
+        type: translations.sp.dog,
+        owner: {
+            gender: translations.sp.male,
+        },
+    }, {
+        type: translations.sp.cat,
+        owner: {
+            gender: translations.sp.female,
+        },
+    }, {}, {
+        owner: {
+            gender: translations.sp.male,
+        },
+    }, {
+        type: translations.sp.dog,
+    }];
+
+    const translationTr = [{}, {
+        type: translations.tr.cat,
+        owner: {
+            gender: translations.tr.female,
+        },
+    }, {
+        type: translations.tr.dog,
+    }, {
+        type: translations.tr.cat,
+        owner: {
+            gender: translations.tr.male,
+        },
+    }, {
+        owner: {
+            gender: translations.tr.female,
+        },
+    }];
+
+    const expectedRecordsSp = [{
+        id: 1,
+        type: translations.sp.dog,
+        name: 'Russell',
+        owner: {
+            gender: translations.sp.male
+        },
+    }, {
+        id: 3,
+        type: translations.sp.cat,
+        name: 'Snowball',
+        owner: {
+            gender: translations.sp.female
+        },
+    }, {
+        id: 4,
+        type: 'dog',
+        name: 'Terry',
+        owner: {
+            gender: 'male'
+        },
+    }, {
+        id: 7,
+        type: 'cat',
+        name: 'Jewel',
+        owner: {
+            gender: translations.sp.male
+        },
+    }, {
+        id: 8,
+        type: translations.sp.dog,
+        name: 'Buzz',
+        owner: {
+            gender: 'female'
+        },
+    }];
+
+    const expectedRecordsTr = [{
+        id: 1,
+        type: 'dog',
+        name: 'Russell',
+        owner: {
+            gender: 'male',
+        },
+    }, {
+        id: 3,
+        type: translations.tr.cat,
+        name: 'Snowball',
+        owner: {
+            gender: translations.tr.female
+        },
+    }, {
+        id: 4,
+        type:  translations.tr.dog,
+        name: 'Terry',
+        owner: {
+            gender: 'male'
+        },
+    }, {
+        id: 7,
+        type: translations.tr.cat,
+        name: 'Jewel',
+        owner: {
+            gender: translations.tr.male
+        },
+    }, {
+        id: 8,
+        type: 'dog',
+        name: 'Buzz',
+        owner: {
+            gender: translations.tr.female
+        },
+    }];
+
+    it('translate', function translate() {
+        const apiHistory = new APIHistory();
+        records.forEach((record) => {
+            const { id, ...client } = _.cloneDeep(record);
+            apiHistory.pushWithId(client, id);
+        });
+
+        translationSp.forEach((translation, index) => {
+            if (!_.isEmpty(translation)) {
+                apiHistory.translate(index, 'sp', translation);
+            }
+        });
+
+        translationTr.forEach((translation, index) => {
+            if (!_.isEmpty(translation)) {
+                apiHistory.translate(index, 'tr', translation);
+            }
+        });
+
+        checkRecords(apiHistory, records, [0, 1, 2, 3, 4]);
+
+        records.forEach((record, index) => {
+            const serverSp = apiHistory.translatedServer(index, 'sp');
+            expect(serverSp).to.deep.equal(expectedRecordsSp[index]);
+            const serverTr = apiHistory.translatedServer(index, 'tr');
+            expect(serverTr).to.deep.equal(expectedRecordsTr[index]);
+            const serverFr = apiHistory.translatedServer(index, 'fr');
+            expect(serverFr).to.deep.equal(records[index]);
+        });
+ 
+        records.forEach((record, index) => {
+            const serverSp = apiHistory.serverTranslation(record.id, 'sp');
+            expect(serverSp).to.deep.equal(expectedRecordsSp[index]);
+            const serverTr = apiHistory.serverTranslation(record.id, 'tr');
+            expect(serverTr).to.deep.equal(expectedRecordsTr[index]);
+            const serverFr = apiHistory.serverTranslation(record.id, 'fr');
+            expect(serverFr).to.deep.equal(records[index]);
+        });
+
+        expect(apiHistory.translatedHistory('sp')).to.deep.equal(expectedRecordsSp);
+        expect(apiHistory.translatedHistory('tr')).to.deep.equal(expectedRecordsTr);
+        expect(apiHistory.translatedHistory('fr')).to.deep.equal(records);
+
+        const testRecords = records.map((record) => {
+            const testRecord = _.cloneDeep(record);
+            return _.omit(testRecord, 'name');
+        });
+        const testRecordsSp = expectedRecordsSp.map((record) => {
+            const testRecord = _.cloneDeep(record);
+            return _.omit(testRecord, 'name');
+        });
+        const testRecordsTr = expectedRecordsTr.map((record) => {
+            const testRecord = _.cloneDeep(record);
+            return _.omit(testRecord, 'name');
+        });
+
+        const includeFields = ['id', 'owner', 'type'];
+        expect(apiHistory.listTranslatedServers('sp', includeFields)).to.deep.equal(testRecordsSp);
+        expect(apiHistory.listTranslatedServers('tr', includeFields)).to.deep.equal(testRecordsTr);
+        expect(apiHistory.listTranslatedServers('fr', includeFields)).to.deep.equal(testRecords);
+    });
+
+    it('translateServer', function translateServer() {
+        const testRecords = records.map((record, index) => {
+            const testRecord = Object.assign({
+                fieldstr1: `fieldStr1_${index}`,
+                fieldstr2: `fieldStr2_${index}`,
+                fieldint: index,
+            }, record);
+            return testRecord;
+        });
+
+        const testRecordsTr = expectedRecordsTr.map((record, index) => {
+            const testRecord = Object.assign({
+                fieldstr1: `fieldStr1_${index}`,
+                fieldstr2: `fieldStr2_${index}`,
+                fieldint: index,
+            }, record);
+            return testRecord;
+        });
+
+        const testRecordsSp = expectedRecordsSp.map((record, index) => {
+            const testRecord = Object.assign({
+                fieldstr1: `fieldStr1_${index}`,
+                fieldstr2: `fieldStr2_${index}`,
+                fieldint: index,
+            }, record);
+            return testRecord;
+        });
+
+        const apiHistory = new APIHistory(['type', 'owner', 'fieldint']);
+        testRecords.forEach((record) => {
+            const { id, ...client } = _.cloneDeep(record);
+            apiHistory.pushWithId(client, id);
+        });
+
+        translationSp.forEach((translation, index) => {
+            if (!_.isEmpty(translation)) {
+                apiHistory.translateWithServer(testRecords[index], 'sp', translation);
+            }
+        });
+
+        translationTr.forEach((translation, index) => {
+            if (!_.isEmpty(translation)) {
+                apiHistory.translateWithServer(testRecords[index], 'tr', translation);
+            }
+        });
+
+        testRecords.forEach((record, index) => {
+            const serverSp = apiHistory.translatedServer(index, 'sp');
+            expect(serverSp).to.deep.equal(testRecordsSp[index]);
+            const serverTr = apiHistory.translatedServer(index, 'tr');
+            expect(serverTr).to.deep.equal(testRecordsTr[index]);
+            const serverFr = apiHistory.translatedServer(index, 'fr');
+            expect(serverFr).to.deep.equal(testRecords[index]);
+        });
+
+        testRecords.forEach((record, index) => {
+            const serverSp = apiHistory.serverTranslation(record.id, 'sp');
+            expect(serverSp).to.deep.equal(testRecordsSp[index]);
+            const serverTr = apiHistory.serverTranslation(record.id, 'tr');
+            expect(serverTr).to.deep.equal(testRecordsTr[index]);
+            const serverFr = apiHistory.serverTranslation(record.id, 'fr');
+            expect(serverFr).to.deep.equal(testRecords[index]);
+        });
+
+        expect(apiHistory.translatedHistory('sp')).to.deep.equal(testRecordsSp);
+        expect(apiHistory.translatedHistory('tr')).to.deep.equal(testRecordsTr);
+        expect(apiHistory.translatedHistory('fr')).to.deep.equal(testRecords);
+
+        {
+            const expectedRecords = testRecords.map((record) => {
+                const testRecord = _.cloneDeep(record);
+                return _.omit(testRecord, ['fieldstr1', 'name', 'fieldstr2', 'id']);
+            });
+            const expectedRecordsSp = testRecordsSp.map((record) => {
+                const testRecord = _.cloneDeep(record);
+                return _.omit(testRecord, ['fieldstr1', 'name', 'fieldstr2', 'id']);
+            });
+            const expectedRecordsTr = testRecordsTr.map((record) => {
+                const testRecord = _.cloneDeep(record);
+                return _.omit(testRecord, ['fieldstr1', 'name', 'fieldstr2', 'id']);
+            });
+
+            expect(apiHistory.listTranslatedServers('sp')).to.deep.equal(expectedRecordsSp);
+            expect(apiHistory.listTranslatedServers('tr')).to.deep.equal(expectedRecordsTr);
+            expect(apiHistory.listTranslatedServers('fr')).to.deep.equal(expectedRecords);
+        }
+
+        {
+            const expectedRecords = testRecords.map((record) => {
+                const testRecord = _.cloneDeep(record);
+                return _.omit(testRecord, ['fieldstr1', 'name', 'fieldstr2', 'fieldint']);
+            });
+            const expectedRecordsSp = testRecordsSp.map((record) => {
+                const testRecord = _.cloneDeep(record);
+                return _.omit(testRecord, ['fieldstr1', 'name', 'fieldstr2', 'fieldint']);
+            });
+            const expectedRecordsTr = testRecordsTr.map((record) => {
+                const testRecord = _.cloneDeep(record);
+                return _.omit(testRecord, ['fieldstr1', 'name', 'fieldstr2', 'fieldint']);
+            });
+
+            const includeFields = ['id', 'type', 'owner'];
+            expect(apiHistory.listTranslatedServers('sp', includeFields)).to.deep.equal(expectedRecordsSp);
+            expect(apiHistory.listTranslatedServers('tr', includeFields)).to.deep.equal(expectedRecordsTr);
+            expect(apiHistory.listTranslatedServers('fr', includeFields)).to.deep.equal(expectedRecords);
+        }
+    });
+
+    it('pushRemoveHook', function pushRemoveHooks() {
+        const apiHistory = new APIHistory();
+        const store = { lastIndex: -1 };
+        apiHistory.pushRemoveHook(index => store.lastIndex = index);
+        records.forEach((record) => {
+            const { id, ...client } = _.cloneDeep(record);
+            apiHistory.pushWithId(client, id);
+        });
+
+        const indices = [0, 1, 2, 3, 4];
+        [ 1, 2, 3, 0].forEach((index) => {
+            expect(store.lastIndex).not.equal(index);
+            apiHistory.remove(index);
+            expect(store.lastIndex).equal(index);
+        });
     });
 });
