@@ -7,7 +7,7 @@ import APIHistory from '../lib/api-history.js';
 
 const { expect } = chai;
 
-describe('api-history unit tests', () => {
+describe('api-history unit tests', function apiHistoryUnit() {
     const records = [{
         id: 1,
         type: 'dog',
@@ -109,7 +109,28 @@ describe('api-history unit tests', () => {
         expect(apiHistory.listServers(['id', 'name'], testIndices)).to.deep.equal(fieldLimitedServers);
     };
 
-    it('push', () => {
+    const newAPIHistory = function () {
+        const apiHistory = new APIHistory();
+        records.forEach((record) => {
+            const { id, ...client } = _.cloneDeep(record);
+            apiHistory.pushWithId(client, id);
+        });
+        return apiHistory;
+    };
+
+    const getRecordsWithExtraFields = function (originalRecords) {
+        return originalRecords.map((record, index) => {
+            const extendedRecord = {
+                fieldstr1: `fieldStr1_${index}`,
+                fieldstr2: `fieldStr2_${index}`,
+                fieldint: index,
+                ...record,
+            };
+            return extendedRecord;
+        });
+    };
+
+    it('push', function push() {
         const apiHistory = new APIHistory();
         records.forEach((record) => {
             const client = _.omit(record, ['id']);
@@ -119,21 +140,13 @@ describe('api-history unit tests', () => {
         checkRecords(apiHistory, records, [0, 1, 2, 3, 4]);
     });
 
-    it('pushWithId', () => {
-        const apiHistory = new APIHistory();
-        records.forEach((record) => {
-            const { id, ...client } = _.cloneDeep(record);
-            apiHistory.pushWithId(client, id);
-        });
+    it('pushWithId', function pushWithId() {
+        const apiHistory = newAPIHistory();
         checkRecords(apiHistory, records, [0, 1, 2, 3, 4]);
     });
 
-    it('remove', () => {
-        const apiHistory = new APIHistory();
-        records.forEach((record) => {
-            const { id, ...client } = _.cloneDeep(record);
-            apiHistory.pushWithId(client, id);
-        });
+    it('remove', function remove() {
+        const apiHistory = newAPIHistory();
 
         const indices = [0, 1, 2, 3, 4];
         [[1, 1], [2, 1], [3, 1], [0, 0]].forEach(([index, currentIndex]) => {
@@ -143,12 +156,8 @@ describe('api-history unit tests', () => {
         });
     });
 
-    it('replace', () => {
-        const apiHistory = new APIHistory();
-        records.forEach((record) => {
-            const { id, ...client } = _.cloneDeep(record);
-            apiHistory.pushWithId(client, id);
-        });
+    it('replace', function replace() {
+        const apiHistory = newAPIHistory();
 
         const indexMovement = [[1, 1], [4, 3]];
         const expectedRecords = _.cloneDeep(records);
@@ -164,16 +173,8 @@ describe('api-history unit tests', () => {
         });
     });
 
-    it('listServers', () => {
-        const testRecords = records.map((record, index) => {
-            const testRecord = {
-                fieldstr1: `fieldStr1_${index}`,
-                fieldstr2: `fieldStr2_${index}`,
-                fieldint: index,
-                ...record,
-            };
-            return testRecord;
-        });
+    it('listServers', function listServers() {
+        const testRecords = getRecordsWithExtraFields(records);
 
         const apiHistory = new APIHistory(['name', 'fieldstr1', 'fieldint']);
         testRecords.forEach((record) => {
@@ -219,12 +220,8 @@ describe('api-history unit tests', () => {
         }
     });
 
-    it('updateClient and updateServer', () => {
-        const apiHistory = new APIHistory();
-        records.forEach((record) => {
-            const { id, ...client } = _.cloneDeep(record);
-            apiHistory.pushWithId(client, id);
-        });
+    it('updateClient and updateServer', function updateClientAndUpdateServer() {
+        const apiHistory = newAPIHistory();
 
         apiHistory.updateClient(1, _.omit(additionalRecords[0], 'id'));
         apiHistory.updateClient(3, _.omit(additionalRecords[1], 'id'));
@@ -258,7 +255,7 @@ describe('api-history unit tests', () => {
         checkRecords(apiHistory, expectedRecords, [1, 2, 3]);
     });
 
-    it('reloadServer', () => {
+    it('reloadServer', function reloadServer() {
         const apiHistory = new APIHistory();
         const expectedRecords = [...records.slice(0, 4), ...additionalRecords.slice(0, 2)];
         expectedRecords.forEach((record) => {
@@ -411,12 +408,8 @@ describe('api-history unit tests', () => {
         },
     }];
 
-    it('translate', () => {
-        const apiHistory = new APIHistory();
-        records.forEach((record) => {
-            const { id, ...client } = _.cloneDeep(record);
-            apiHistory.pushWithId(client, id);
-        });
+    it('translate', function translate() {
+        const apiHistory = newAPIHistory();
 
         translationSp.forEach((translation, index) => {
             if (!_.isEmpty(translation)) {
@@ -473,36 +466,10 @@ describe('api-history unit tests', () => {
         expect(apiHistory.listTranslatedServers('fr', includeFields)).to.deep.equal(testRecords);
     });
 
-    it('translateServer', () => {
-        const testRecords = records.map((record, index) => {
-            const testRecord = {
-                fieldstr1: `fieldStr1_${index}`,
-                fieldstr2: `fieldStr2_${index}`,
-                fieldint: index,
-                ...record,
-            };
-            return testRecord;
-        });
-
-        const testRecordsTr = expectedRecordsTr.map((record, index) => {
-            const testRecord = {
-                fieldstr1: `fieldStr1_${index}`,
-                fieldstr2: `fieldStr2_${index}`,
-                fieldint: index,
-                ...record,
-            };
-            return testRecord;
-        });
-
-        const testRecordsSp = expectedRecordsSp.map((record, index) => {
-            const testRecord = {
-                fieldstr1: `fieldStr1_${index}`,
-                fieldstr2: `fieldStr2_${index}`,
-                fieldint: index,
-                ...record,
-            };
-            return testRecord;
-        });
+    it('translateServer', function translateServer() {
+        const testRecords = getRecordsWithExtraFields(records);
+        const testRecordsSp = getRecordsWithExtraFields(expectedRecordsSp);
+        const testRecordsTr = getRecordsWithExtraFields(expectedRecordsTr);
 
         const apiHistory = new APIHistory(['type', 'owner', 'fieldint']);
         testRecords.forEach((record) => {
@@ -584,15 +551,12 @@ describe('api-history unit tests', () => {
         }
     });
 
-    it('pushRemoveHook', () => {
-        const apiHistory = new APIHistory();
+    it('pushRemoveHook', function pushRemoveHook() {
+        const apiHistory = newAPIHistory();
+
         const store = { lastIndex: -1 };
         apiHistory.pushRemoveHook((index) => {
             store.lastIndex = index;
-        });
-        records.forEach((record) => {
-            const { id, ...client } = _.cloneDeep(record);
-            apiHistory.pushWithId(client, id);
         });
 
         [1, 2, 3, 0].forEach((index) => {
